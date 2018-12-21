@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * @Description redis 公共配置类 
+ * @Description redis 公共配置类
  * @author zhangxm
  * @version v1.0
  * @since 2018年8月10日
@@ -20,26 +20,21 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "redis.common")
 public class RedisCommonConfig {
 
-    //密码
     private String password = "redis";
 
-    //连接库的
     private Integer dbIndex = 0;
 
-    //最大空闲连接数量  default 300
     private Integer maxIdle = 300;
 
-    //最小空闲连接数量
     private Integer minIdle = 10;
 
-    //池中持有的最大连接数量
     private Integer maxActive = 600;
 
-    //等待可用连接的最大时间，单位毫秒，默认值为-1，表示永不超时
     private Integer maxWait = -1;
 
-    //borrowObject 时是否执行检测
     private Boolean testOnBorrow = true;
+
+    private Boolean testOnReturn = false;
 
     private Integer timeout = 100000;
 
@@ -72,7 +67,7 @@ public class RedisCommonConfig {
     }
 
     /**
-     * @return the maxIdle
+     * @return the maxIdle 最大空闲连接数量  default 300
      */
     public Integer getMaxIdle() {
         return maxIdle;
@@ -86,7 +81,7 @@ public class RedisCommonConfig {
     }
 
     /**
-     * @return the maxActive
+     * @return the maxActive 池中持有的最大连接数量
      */
     public Integer getMaxActive() {
         return maxActive;
@@ -100,7 +95,7 @@ public class RedisCommonConfig {
     }
 
     /**
-     * @return the maxWait
+     * @return the maxWait 等待可用连接的最大时间，单位毫秒，默认值为-1，表示永不超时
      */
     public Integer getMaxWait() {
         return maxWait;
@@ -114,7 +109,7 @@ public class RedisCommonConfig {
     }
 
     /**
-     * @return the testOnBorrow
+     * @return the testOnBorrow  borrowObject 时是否执行检测
      */
     public Boolean getTestOnBorrow() {
         return testOnBorrow;
@@ -142,7 +137,7 @@ public class RedisCommonConfig {
     }
 
     /**
-     * @return the minIdle
+     * @return the minIdle 最小空闲连接数量
      */
     public Integer getMinIdle() {
         return minIdle;
@@ -155,5 +150,11 @@ public class RedisCommonConfig {
         this.minIdle = minIdle;
     }
 
+    public Boolean getTestOnReturn() {
+        return testOnReturn;
+    }
 
+    public void setTestOnReturn(Boolean testOnReturn) {
+        this.testOnReturn = testOnReturn;
+    }
 }

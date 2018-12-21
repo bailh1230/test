@@ -9,7 +9,7 @@
  * <author>          <time>          <version>          <desc>
  * 作者姓名           修改时间           版本号              描述
  */
-package com.bai.boot.demo;
+package com.bai.boot.demo.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,18 +19,18 @@ import org.springframework.session.web.http.CookieHttpSessionIdResolver;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 60 * 30)
+@EnableRedisHttpSession
 public class SessionConfig {
-    @Value(value = "${server.servlet.session.cookie.path}")
+    @Value("${server.servlet.session.cookie.path}")
     private String path;
 
-    @Value(value = "${server.servlet.session.cookie.name}")
+    @Value("${server.servlet.session.cookie.name}")
     private String sessionName;
 
-    @Value(value = "${server.servlet.session.cookie.http-only}")
+    @Value("${server.servlet.session.cookie.http-only}")
     private Boolean isHttpOnly;
 
-    @Value(value = "${server.servlet.session.cookie.timeout}")
+    @Value("${server.servlet.session.cookie.timeout}")
     private Integer timeout;
     @Bean
     public CookieHttpSessionIdResolver cookieHttpSessionStrategy(){

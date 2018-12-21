@@ -5,11 +5,15 @@
  * 创建日期：2018年5月24日
  * 修改日期：2018年5月24日
  */
-package com.bai.boot.demo.cache;
+package com.bai.boot.demo.config;
 
+import com.bai.boot.demo.cache.RedisClusterConfig;
+import com.bai.boot.demo.cache.RedisCommonConfig;
+import com.bai.boot.demo.cache.RedisConfig;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,14 +21,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.StringUtils;
-import redis.clients.jedis.JedisPoolConfig;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,31 +51,56 @@ public class RedisTemplateConfig {
     @Autowired
     private RedisClusterConfig redisClusterConfig;
 
-    @Bean
-    @Primary
-    public JedisPoolConfig initPoolConfig() {
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxIdle(redisCommonConfig.getMaxIdle());
-        poolConfig.setMinIdle(redisCommonConfig.getMinIdle());
-        poolConfig.setMaxTotal(redisCommonConfig.getMaxActive());
-        poolConfig.setMaxWaitMillis(redisCommonConfig.getMaxWait());
-        poolConfig.setTestOnBorrow(redisCommonConfig.getTestOnBorrow());
-        return poolConfig;
-    }
+//    @Bean
+//    @Primary
+//    public LettucePoolingClientConfiguration initPoolingConfig() {
+//        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+//        poolConfig.setMaxIdle(redisCommonConfig.getMaxIdle());
+//        poolConfig.setMaxTotal(redisCommonConfig.getMaxActive());
+//        poolConfig.setMinIdle(redisCommonConfig.getMinIdle());
+//        poolConfig.setTestOnBorrow(redisCommonConfig.getTestOnBorrow());
+//        poolConfig.setTestOnReturn(redisCommonConfig.getTestOnReturn());
+//        poolConfig.setMaxWaitMillis(redisCommonConfig.getMaxWait());
+//        LettucePoolingClientConfiguration lettuceClientConfiguration = LettucePoolingClientConfiguration.builder()
+//                .commandTimeout(Duration.ofSeconds(redisCommonConfig.getTimeout()))
+//                .poolConfig(poolConfig)
+//                .shutdownTimeout(Duration.ZERO)
+//                .build();
+//
+//        return lettuceClientConfiguration;
+//    }
 
     @Bean
     @Primary
-    public JedisConnectionFactory initConnectionFactory(JedisPoolConfig poolConfig) {
+    public JedisClientConfiguration initPoolingConfig() {
+        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+        poolConfig.setMaxIdle(redisCommonConfig.getMaxIdle());
+        poolConfig.setMaxTotal(redisCommonConfig.getMaxActive());
+        poolConfig.setMinIdle(redisCommonConfig.getMinIdle());
+        poolConfig.setTestOnBorrow(redisCommonConfig.getTestOnBorrow());
+        poolConfig.setTestOnReturn(redisCommonConfig.getTestOnReturn());
+        poolConfig.setMaxWaitMillis(redisCommonConfig.getMaxWait());
+        JedisClientConfiguration jedisClientConfiguration = JedisClientConfiguration.builder()
+                .connectTimeout(Duration.ofSeconds(redisCommonConfig.getTimeout()))
+                .readTimeout(Duration.ZERO)
+                .usePooling().poolConfig(poolConfig)
+                .build();
+        return jedisClientConfiguration;
+    }
+    @Bean
+    @Primary
+
+
+    public JedisConnectionFactory initConnectionFactory(JedisClientConfiguration poolConfig) {
         //jedis的连接工厂
-        JedisConnectionFactory connectionFactory = null;
-        CustomRedisPoolConfig customRedisPoolConfig = new CustomRedisPoolConfig(poolConfig, redisCommonConfig.getTimeout());
+        JedisConnectionFactory connectionFactory;
         if (StringUtils.isEmpty(redisClusterConfig.getNodes())) {
             RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
             redisStandaloneConfiguration.setHostName(redisConfig.getHost());
             redisStandaloneConfiguration.setPort(redisConfig.getPort());
             redisStandaloneConfiguration.setDatabase(redisCommonConfig.getDbIndex());
             redisStandaloneConfiguration.setPassword(redisCommonConfig.getPassword());
-            connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, customRedisPoolConfig);
+            connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, poolConfig);
         } else {
             //集群版 连接工厂
             //初始化nodes
@@ -84,7 +114,7 @@ public class RedisTemplateConfig {
             redisClusterConfiguration.setClusterNodes(nodeList);
             redisClusterConfiguration.setPassword(redisCommonConfig.getPassword());
             //初始化 connectionFactory
-            connectionFactory = new JedisConnectionFactory(redisClusterConfiguration, customRedisPoolConfig);
+            connectionFactory = new JedisConnectionFactory(redisClusterConfiguration, poolConfig);
         }
         connectionFactory.afterPropertiesSet();
         return connectionFactory;
