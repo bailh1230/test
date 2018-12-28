@@ -7,8 +7,7 @@
  */
 package com.bai.boot.demo.config;
 
-import javax.sql.DataSource;
-
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
 import org.slf4j.Logger;
@@ -19,9 +18,8 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import com.alibaba.druid.pool.DruidDataSource;
 
-import java.sql.SQLException;
+import javax.sql.DataSource;
 
 /**
  * @Description  

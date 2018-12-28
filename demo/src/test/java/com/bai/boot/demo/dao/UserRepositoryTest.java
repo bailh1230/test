@@ -25,6 +25,7 @@ public class UserRepositoryTest {
     }
 
     @Test
+
     public void test() throws Exception {
         Date date = new Date();
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
