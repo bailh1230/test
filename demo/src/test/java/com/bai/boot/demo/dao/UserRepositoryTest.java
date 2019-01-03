@@ -1,5 +1,7 @@
 package com.bai.boot.demo.dao;
 
+import com.bai.boot.demo.dao.read.UserReadRepository;
+import com.bai.boot.demo.dao.write.UserWriteRepository;
 import com.bai.boot.demo.domain.User;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +20,10 @@ import java.util.Date;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserRepositoryTest {
     @Autowired
-    private UserRepository userRepository;
+    private UserWriteRepository userWriteRepository;
+
+    @Autowired
+    private UserReadRepository userReadRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -31,12 +36,12 @@ public class UserRepositoryTest {
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
         String formattedDate = dateFormat.format(date);
 
-        userRepository.save(new User("aa1", "aa@126.com", "aa", "aa123456", formattedDate));
-        userRepository.save(new User("bb2", "bb@126.com", "bb", "bb123456", formattedDate));
-        userRepository.save(new User("cc3", "cc@126.com", "cc", "cc123456", formattedDate));
+        userWriteRepository.save(new User("aa1", "aa@126.com", "aa", "aa123456", formattedDate));
+        userWriteRepository.save(new User("bb2", "bb@126.com", "bb", "bb123456", formattedDate));
+        userWriteRepository.save(new User("cc3", "cc@126.com", "cc", "cc123456", formattedDate));
 
-        Assert.assertEquals(3, userRepository.findAll().size());
-        Assert.assertEquals(2, userRepository.findByUserNameOrEmail("bb2", "cc@126.com").size());
-        userRepository.delete(userRepository.findByUserName("aa1"));
+        Assert.assertEquals(3, userReadRepository.findAll().size());
+        Assert.assertEquals(2, userReadRepository.findByUserNameOrEmail("bb2", "cc@126.com").size());
+        userWriteRepository.delete(userReadRepository.findByUserName("aa1"));
     }
 }

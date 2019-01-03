@@ -11,7 +11,8 @@
  */
 package com.bai.boot.demo.service.imp;
 
-import com.bai.boot.demo.dao.UserRepository;
+import com.bai.boot.demo.dao.read.UserReadRepository;
+import com.bai.boot.demo.dao.write.UserWriteRepository;
 import com.bai.boot.demo.domain.User;
 import com.bai.boot.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,26 +26,27 @@ import java.util.List;
 @Service
 @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED, readOnly = true, rollbackFor = Exception.class)
 public class UserServiceImp implements UserService {
-    private UserRepository userRepository;
-
+    private UserWriteRepository userWriteRepository;
+    private UserReadRepository userReadRepository;
     @Autowired
-    public UserServiceImp(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserServiceImp(UserWriteRepository userWriteRepository, UserReadRepository userReadRepository) {
+        this.userWriteRepository = userWriteRepository;
+        this.userReadRepository = userReadRepository;
     }
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAll();
+        return userReadRepository.findAll();
     }
 
     @Override
     public User findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
+        return userReadRepository.findByUserName(userName);
     }
 
     @Override
     @Transactional(readOnly = false, rollbackFor = Exception.class)
     public void saveUser(User user) {
-        userRepository.saveAndFlush(user);
+        userWriteRepository.save(user);
     }
 }

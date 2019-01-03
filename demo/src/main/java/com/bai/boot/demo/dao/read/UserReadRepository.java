@@ -9,7 +9,7 @@
  * <author>          <time>          <version>          <desc>
  * 作者姓名           修改时间           版本号              描述
  */
-package com.bai.boot.demo.dao;
+package com.bai.boot.demo.dao.read;
 
 import com.bai.boot.demo.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserReadRepository extends JpaRepository<User, Long> {
     User findByUserName(String userName);
 
     List<User> findByUserNameOrEmail(String username, String email);

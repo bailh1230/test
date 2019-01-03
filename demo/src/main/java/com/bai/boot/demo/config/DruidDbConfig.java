@@ -8,13 +8,8 @@
 package com.bai.boot.demo.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.support.http.StatViewServlet;
-import com.alibaba.druid.support.http.WebStatFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -29,15 +24,25 @@ import javax.sql.DataSource;
  */
 @Configuration
 public class DruidDbConfig {
-	
-	@Value(value = "${spring.datasource.driverClassName}")
-	private String driverClassName;
-	@Value("${spring.datasource.url}")
-	private String url;
-	@Value("${spring.datasource.username}")
-	private String username;
-	@Value("${spring.datasource.password}")
-	private String password;
+
+	@Value("${spring.datasource.write.driverClassName}")
+	private String writeDriverClassName;
+	@Value("${spring.datasource.write.url}")
+	private String writeUrl;
+	@Value("${spring.datasource.write.username}")
+	private String writeUsername;
+	@Value("${spring.datasource.write.password}")
+	private String writePassword;
+
+	@Value("${spring.datasource.read.driverClassName}")
+	private String backupDriverClassName;
+	@Value("${spring.datasource.read.url}")
+	private String backupUrl;
+	@Value("${spring.datasource.read.username}")
+	private String backupUsername;
+	@Value("${spring.datasource.read.password}")
+	private String backupPassword;
+
 	@Value("${spring.datasource.maxActive}")
 	private int maxActive;
 	@Value("${spring.datasource.initialSize}")
@@ -68,48 +73,33 @@ public class DruidDbConfig {
 	@Value("${spring.datasource.filters}")
 	private String filters;
 
-	@Value("${spring.datasource.logSlowSql}")
-	private String logSlowSql;
-
-	@Value("${spring.datasource.poolPreparedStatements}")
-	private boolean poolPreparedStatements;
-
-	@Value("${spring.datasource.maxPoolPreparedStatement}")
-	private int maxPoolPreparedStatement;
-
-	protected static final Logger logger = LoggerFactory.getLogger(DruidDbConfig.class);
-
+	/**
+	 * 主数据库连接配置
+	 * @return
+	 */
 	@Bean
-	public ServletRegistrationBean druidServlet() {
-		ServletRegistrationBean reg = new ServletRegistrationBean();
-		reg.setServlet(new StatViewServlet());
-		reg.addUrlMappings("/druid/*");
-		reg.addInitParameter("loginUsername", username);
-		reg.addInitParameter("loginPassword", password);
-		reg.addInitParameter("logSlowSql", logSlowSql);
-		return reg;
-	}
-
-	@Bean
-	public FilterRegistrationBean filterRegistrationBean() {
-		FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-		filterRegistrationBean.setFilter(new WebStatFilter());
-		filterRegistrationBean.addUrlPatterns("/*");
-		filterRegistrationBean.addInitParameter("exclusions", "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*");
-		filterRegistrationBean.addInitParameter("profileEnable", "true");
-		return filterRegistrationBean;
-	}
-
-	@Bean
+	@Qualifier("writeDataSource")
 	@Primary
-	public DataSource datasource(){
-		DruidDataSource datasource = new DruidDataSource();    
-        
-        datasource.setUrl(url);    
-        datasource.setUsername(username);    
-        datasource.setPassword(password);    
-        datasource.setDriverClassName(driverClassName);    
-            
+	public DataSource writeDataSource(){
+		return datasource(writeUrl, writeDriverClassName, writeUsername, writePassword);
+	}
+
+	/**
+	 * 备数据库连接配置
+	 * @return
+	 */
+	@Qualifier("readDataSource")
+	@Bean
+	public DataSource readDataSource(){
+		return datasource(backupUrl, backupDriverClassName, backupUsername, backupPassword);
+	}
+
+	public DataSource datasource(String url, String driverClassName, String username, String password){
+		DruidDataSource datasource = new DruidDataSource();
+        datasource.setUrl(url);
+        datasource.setUsername(username);
+        datasource.setPassword(password);
+        datasource.setDriverClassName(driverClassName);
         //configuration
 		datasource.setInitialSize(initialSize);
 		datasource.setMinIdle(minIdle);
@@ -121,12 +111,12 @@ public class DruidDbConfig {
 		datasource.setTestWhileIdle(testWhileIdle);
 		datasource.setTestOnBorrow(testOnBorrow);
 		datasource.setTestOnReturn(testOnReturn);
-//		try {
-//			datasource.setFilters(filters);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			logger.error(e.getMessage());
-//		}
+/*		try {
+			datasource.setFilters(filters);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(e.getMessage());
+		}*/
         datasource.setPoolPreparedStatements(true);
         datasource.setMaxPoolPreparedStatementPerConnectionSize(20);
         return datasource;

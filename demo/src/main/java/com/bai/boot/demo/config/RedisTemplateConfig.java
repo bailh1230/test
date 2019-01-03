@@ -23,6 +23,8 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -51,24 +53,56 @@ public class RedisTemplateConfig {
     @Autowired
     private RedisClusterConfig redisClusterConfig;
 
-//    @Bean
-//    @Primary
-//    public LettucePoolingClientConfiguration initPoolingConfig() {
-//        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
-//        poolConfig.setMaxIdle(redisCommonConfig.getMaxIdle());
-//        poolConfig.setMaxTotal(redisCommonConfig.getMaxActive());
-//        poolConfig.setMinIdle(redisCommonConfig.getMinIdle());
-//        poolConfig.setTestOnBorrow(redisCommonConfig.getTestOnBorrow());
-//        poolConfig.setTestOnReturn(redisCommonConfig.getTestOnReturn());
-//        poolConfig.setMaxWaitMillis(redisCommonConfig.getMaxWait());
-//        LettucePoolingClientConfiguration lettuceClientConfiguration = LettucePoolingClientConfiguration.builder()
-//                .commandTimeout(Duration.ofSeconds(redisCommonConfig.getTimeout()))
-//                .poolConfig(poolConfig)
-//                .shutdownTimeout(Duration.ZERO)
-//                .build();
-//
-//        return lettuceClientConfiguration;
-//    }
+/*    @Bean
+    @Primary
+    public LettucePoolingClientConfiguration initPoolingConfig() {
+        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+        poolConfig.setMaxIdle(redisCommonConfig.getMaxIdle());
+        poolConfig.setMaxTotal(redisCommonConfig.getMaxActive());
+        poolConfig.setMinIdle(redisCommonConfig.getMinIdle());
+        poolConfig.setTestOnBorrow(redisCommonConfig.getTestOnBorrow());
+        poolConfig.setTestOnReturn(redisCommonConfig.getTestOnReturn());
+        poolConfig.setMaxWaitMillis(redisCommonConfig.getMaxWait());
+        LettucePoolingClientConfiguration lettuceClientConfiguration = LettucePoolingClientConfiguration.builder()
+                .commandTimeout(Duration.ofSeconds(redisCommonConfig.getTimeout()))
+                .poolConfig(poolConfig)
+                .shutdownTimeout(Duration.ZERO)
+                .build();
+
+        return lettuceClientConfiguration;
+    }
+
+    @Bean
+    @Primary
+    public LettuceConnectionFactory initConnectionFactory(LettucePoolingClientConfiguration poolConfig) {
+        //jedis的连接工厂
+        LettuceConnectionFactory connectionFactory;
+        if (StringUtils.isEmpty(redisClusterConfig.getNodes())) {
+            RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+            redisStandaloneConfiguration.setHostName(redisConfig.getHost());
+            redisStandaloneConfiguration.setPort(redisConfig.getPort());
+            redisStandaloneConfiguration.setDatabase(redisCommonConfig.getDbIndex());
+            redisStandaloneConfiguration.setPassword(redisCommonConfig.getPassword());
+            connectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration, poolConfig);
+        } else {
+            //集群版 连接工厂
+            //初始化nodes
+            List<RedisNode> nodeList = new ArrayList<RedisNode>();
+            for (String node : redisClusterConfig.getNodes().split(",")) {
+                nodeList.add(new RedisNode(node.split(":")[0], Integer.valueOf(node.split(":")[1])));
+            }
+            //初始化 redisClusterConfiguration
+            RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
+            redisClusterConfiguration.setMaxRedirects(redisClusterConfig.getMaxRedirects());
+            redisClusterConfiguration.setClusterNodes(nodeList);
+            redisClusterConfiguration.setPassword(redisCommonConfig.getPassword());
+            //初始化 connectionFactory
+            connectionFactory = new LettuceConnectionFactory(redisClusterConfiguration, poolConfig);
+        }
+        connectionFactory.afterPropertiesSet();
+        connectionFactory.setShareNativeConnection(false);
+        return connectionFactory;
+    }*/
 
     @Bean
     @Primary
@@ -89,8 +123,6 @@ public class RedisTemplateConfig {
     }
     @Bean
     @Primary
-
-
     public JedisConnectionFactory initConnectionFactory(JedisClientConfiguration poolConfig) {
         //jedis的连接工厂
         JedisConnectionFactory connectionFactory;
@@ -120,15 +152,14 @@ public class RedisTemplateConfig {
         return connectionFactory;
     }
 
+
     /**
      * 实例化redis
      * @return
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Bean
     @Primary
     public RedisTemplate initRedis(JedisConnectionFactory connectionFactory) {
-
         //初始化 RedisTemplate
         RedisTemplate redis = new RedisTemplate();
         redis.setConnectionFactory(connectionFactory);

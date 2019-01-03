@@ -13,10 +13,16 @@ server:
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    driverClassName: com.mysql.cj.jdbc.Driver
-    password: 123456
-    url: jdbc:mysql://192.168.252.212:3307/test?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
+    write:
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://10.10.220.201:3306/test?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+      username: root
+      password: 123456
+    read:
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://192.168.252.212:3307/test?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+      username: root
+      password: 123456
     initialSize: 5
     minIdle: 100
     maxActive: 400
@@ -28,9 +34,7 @@ spring:
     testOnBorrow: false
     testOnReturn: false
     filters: stat,wall,log4j # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
-    logSlowSql: true
     poolPreparedStatements: true
-    maxPoolPreparedStatement: 20
 redis:
   single:
     host: 10.10.220.201
